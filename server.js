@@ -210,7 +210,8 @@ app.get('/api/sop', async (req, res, next) => {
 
         const { data, error, count } = await supabase
             .from(process.env.TABLE_NAME)
-            .select('*', { count: 'exact' })
+            .select('*, scenario_prompts!inner(type)', { count: 'exact' })
+            .neq('scenario_prompts.type', 'Roleplay') // Exclude Roleplay records
             .range(offset, offset + limit - 1)
             .order('created_at', { ascending: false });
 
