@@ -1,0 +1,32 @@
+name: Keep Render Service Alive
+
+on:
+  schedule:
+    # Runs every 5 minutes
+    - cron: '*/5 * * * *'
+  workflow_dispatch: # Allows manual trigger from GitHub UI
+
+jobs:
+  ping-health:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Ping Health Endpoint
+        run: |
+          echo "Pinging health endpoint at $(date)"
+          response=$(curl -s -o /dev/null -w "%{http_code}" ${{ secrets.RENDER_APP_URL }}/health)
+          
+          if [ $response -eq 200 ]; then
+            echo "✓ Health check passed (HTTP $response)"
+          else
+            echo "✗ Health check failed (HTTP $response)"
+            exit 1
+          fi
+      
+      - name: Log Success
+        if: success()
+        run: echo "Service is alive and healthy!"
+      
+      - name: Log Failure
+        if: failure()
+        run: echo "Service health check failed - please investigate"
